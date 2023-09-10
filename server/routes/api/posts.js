@@ -21,46 +21,39 @@ router.post('/', (req, res) => {
 
 // Get all posts
 router.get('/', async (req, res) => {
+    const posts = await loadPostsCollection();
+    if(posts)
+      res.status(200).json(posts);
+    else
+      res.status(500).json({ error: 'Error getting posts' });
+})
+
+// Delete Post
+router.delete('/:postId', async (req, res) => {
   try {
-    const posts = await Post.find({});
-    res.status(200).json(posts);
+    const postId = req.params.postId;
+
+    // Use deleteOne to remove the post by ID
+    const result = await Post.deleteOne({ _id: postId });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    res.status(200).json({ message: 'Post deleted successfully' });
   } catch (err) {
-    res.status(500).json({ error: 'Error getting posts' });
+    console.error(err);
+    res.status(500).json({ error: 'Error deleting post' });
   }
 })
 
-// Get Posts
-// router.get('/', async (req, res) => {
-//     const posts = loadPostsCollection();
-//     if (posts.length){
-//       res.send({ "posts": posts });
-//     }
-//     else {
-//       res.send({ "posts": [] });
-//     }
-// })
-
-// Add Post
-// router.post('/', async(req, res) => {
-//   const posts = await Post.find();
-//   const post = await Post.create({
-//     title: req.body.title,
-//     content: "Some content",
-//   }).then((data) => {
-//     console.log(data);
-//   })
-//   res.status(201).send();
-// })
-
-
-// Delete Post
-
 const loadPostsCollection = async () => {
   try {
-    const posts = await Post.find();
+    const posts = await Post.find({});
     return posts;
   } catch (e) {
     console.error(e.message);
+
   }
 }
 
